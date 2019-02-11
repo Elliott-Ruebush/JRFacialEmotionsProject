@@ -1,0 +1,87 @@
+function addCktoForm() {
+  
+  //var emotionArr = {"Happiness", "Sadness", "Anger", "Fear", "Disgust", "Contempt", "Surprise"};
+  assetsArr = {};
+  var folder = DriveApp.getFoldersByName("cohn-kanade-images");
+  listFolders(folder.next());
+  //assetsArr = getAssets("cohn-kanade-images", myForm);  
+  //img = UrlFetchApp.fetch('https://www.google.com/images/srpr/logo4w.png');
+  //form.addImageItem().setTitle("Hallotest").setImage(img);
+  
+}
+
+
+    
+function getAssets(driveDir, form) {
+    var folders = DriveApp.getFoldersByName(driveDir);
+    var folder = (folders.hasNext())? folders.next() : false;
+    
+    var assets = {};
+    fileCount = 0;
+  Logger.log(folder);
+    if(folder){
+//      if(folder.hasNext()){
+//        folder2 = folder.next()
+//      }
+//      else{
+        var files = folder.getFiles();
+        while (files.hasNext()) {
+          fileCount++;
+            var file = files.next();
+            var fileName = file.getName();
+            assets[fileName] = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+          imgURL = UrlFetchApp.fetch(assets[fileName]);
+    Logger.log(imgURL.getBlob());
+    form.addImageItem()
+         .setTitle("Identify the emotion below...")
+         .setImage(imgURL)
+        }
+      //}
+    }
+    return assets;
+}
+
+function listFolders(folder) {
+  var myForm = FormApp.create("Emotional Recognition Survey");
+  //var emotionArr = [item.createChoice("Happiness"), item.createChoice("Sadness"), item.createChoice("Anger"), item.createChoice("Fear"), item.createChoice("Disgust"),item.createChoice("Contempt"), item.createChoice("Surprise")];
+  //get the root folder
+  
+  //get subfolders iterator
+  //Go through each subfolder to the next subfolder to then get to the files
+  folder = folder || DriveApp.getRootFolder();
+ 
+//var name = folder.getName();
+  
+//  var files = folder.getFiles();
+//
+//  while ( files.hasNext() ) {
+//    Logger.log(name + " :: " + files.next().getName());
+//  }
+  
+  var subjectFolders = folder.getFolders();
+
+  while (subjectFolders.hasNext()) {
+    var subjectFolder = subjectFolders.next();
+    var sequenceFolders = subjectFolder.getFolders();
+    var i = 0;
+    while(sequenceFolders.hasNext() && i < 30){
+      var sequenceFolder = sequenceFolders.next();
+      var sequenceImages = sequenceFolder.getFiles();
+      i++;
+      if(sequenceImages.hasNext()){
+//        var image =  sequenceImages.next().getName();
+//        Logger.log("Image name: " + image);
+        var imageId = sequenceImages.next().getId();
+        var fileUrl = 'https://drive.google.com/uc?export=view&id=' + imageId;
+        var img = UrlFetchApp.fetch(fileUrl);
+        myForm.addImageItem()
+         .setTitle("Identify the emotion shown below...")
+         .setImage(img);
+        var item = myForm.addMultipleChoiceItem();
+        item.setTitle("See above image");
+        item.setChoices([item.createChoice("Happiness"), item.createChoice("Sadness"), item.createChoice("Anger"), item.createChoice("Fear"), item.createChoice("Disgust"),item.createChoice("Contempt"), item.createChoice("Surprise")]);
+      }
+    }
+  }
+  
+}
